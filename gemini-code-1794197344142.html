@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>동사 기사단 2D 입국 심사 RPG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; user-select: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-3">
+
+    <!-- 상단 상태바 & 버튼 -->
+    <header class="w-full max-w-3xl bg-slate-900 border-2 border-slate-700 rounded-t-2xl p-4 flex justify-between items-center backdrop-blur shadow-lg">
+        <div class="flex items-center gap-3 font-bold text-sm">
+            <span class="bg-slate-950 px-3 py-1.5 rounded-full border border-slate-700">❤️ HP: <span id="hp-display" class="text-rose-400">3</span></span>
+            <span class="bg-slate-950 px-3 py-1.5 rounded-full border border-slate-700">🪙 승인: <span id="score-display" class="text-cyan-300">0</span>/10</span>
+        </div>
+        <div class="flex gap-2">
+            <!-- 시각적으로 강조된 밝은 처음으로 돌아가기 버튼 -->
+            <button onclick="resetGame()" class="px-3.5 py-1.5 text-xs font-black text-slate-950 bg-cyan-400 hover:bg-cyan-300 active:bg-cyan-500 rounded-xl transition shadow-md shadow-cyan-400/20 flex items-center gap-1">
+                🔄 처음으로 돌아가기
+            </button>
+            <button onclick="toggleCodex()" class="px-3 py-1.5 text-xs font-bold text-amber-300 bg-amber-950/50 border border-amber-400/60 hover:bg-amber-900/60 rounded-xl transition">
+                📜 법률 도감
+            </button>
+        </div>
+    </header>
+
+    <!-- 2D 맵 게임 필드 -->
+    <div id="game-field" class="w-full max-w-3xl h-[420px] bg-slate-900 border-x-2 border-slate-700 relative overflow-hidden flex flex-col justify-between p-4 shadow-2xl">
+        
+        <!-- 3개 왕국 성문 (밝은 하이라이트 칼라 적용) -->
+        <div class="grid grid-cols-3 gap-3 w-full z-10">
+            <div id="gate-1" class="bg-emerald-950/70 border-2 border-emerald-400 rounded-xl p-3 text-center transition-all shadow-lg shadow-emerald-500/10">
+                <div class="text-xs font-black text-emerald-300">⚔️ 1류 동사 왕국</div>
+                <div class="text-[11px] text-emerald-100 font-semibold mt-1">1류 문지기 💂</div>
+            </div>
+            <div id="gate-2" class="bg-sky-950/70 border-2 border-sky-400 rounded-xl p-3 text-center transition-all shadow-lg shadow-sky-500/10">
+                <div class="text-xs font-black text-sky-300">🏰 2류 동사 왕국</div>
+                <div class="text-[11px] text-sky-100 font-semibold mt-1">2류 문지기 💂</div>
+            </div>
+            <div id="gate-3" class="bg-amber-950/70 border-2 border-amber-400 rounded-xl p-3 text-center transition-all shadow-lg shadow-amber-500/10">
+                <div class="text-xs font-black text-amber-300">👑 3류 동사 왕국</div>
+                <div class="text-[11px] text-amber-100 font-semibold mt-1">3류 문지기 💂</div>
+            </div>
+        </div>
+
+        <!-- 플레이어 기사 아바타 (밝은 시안 배지) -->
+        <div id="player-avatar" class="absolute w-32 h-20 bg-slate-800/95 border-2 border-cyan-400 rounded-xl flex flex-col items-center justify-center transition-all duration-75 shadow-xl shadow-cyan-400/20 z-20" style="left: 270px; top: 280px;">
+            <span id="player-icon" class="text-2xl">🤝</span>
+            <span id="player-label" class="text-[11px] font-black text-cyan-300 mt-0.5">あう (만나다)</span>
+        </div>
+
+        <!-- 하단 조작 가이드 -->
+        <div class="text-center text-xs text-slate-300 z-10 font-semibold">
+            ⌨️ <b>방향키 (↑ ↓ ← →)</b> 또는 하단 패드로 기사를 이동시켜 문지기에게 다가가세요!
+        </div>
+
+        <!-- 대화 팝업 상자 -->
+        <div id="dialogue-box" class="hidden absolute inset-x-4 bottom-4 bg-slate-950/95 border-2 border-cyan-400 rounded-2xl p-4 z-30 flex-col gap-3 shadow-2xl backdrop-blur">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                <span id="dialogue-speaker" class="font-bold text-cyan-300 text-xs">문지기</span>
+                <span id="dialogue-knight-info" class="text-[11px] text-slate-300 font-semibold"></span>
+            </div>
+            <p id="dialogue-text" class="text-sm leading-relaxed text-slate-100 font-bold"></p>
+            <div id="dialogue-choices" class="flex flex-col gap-2 pt-1"></div>
+        </div>
+    </div>
+
+    <!-- 모바일 / 터치 패드 조작부 (밝은 버튼 색상) -->
+    <footer class="w-full max-w-3xl bg-slate-900 border-2 border-slate-700 rounded-b-2xl p-4 flex flex-col items-center gap-3">
+        <div class="grid grid-cols-3 gap-2 w-48">
+            <div></div>
+            <button onclick="movePlayer(0, -30)" class="bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 text-slate-950 border border-cyan-300 rounded-xl p-3 text-center text-base font-black shadow-md">▲</button>
+            <div></div>
+            <button onclick="movePlayer(-30, 0)" class="bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 text-slate-950 border border-cyan-300 rounded-xl p-3 text-center text-base font-black shadow-md">◀</button>
+            <button onclick="movePlayer(0, 30)" class="bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 text-slate-950 border border-cyan-300 rounded-xl p-3 text-center text-base font-black shadow-md">▼</button>
+            <button onclick="movePlayer(30, 0)" class="bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 text-slate-950 border border-cyan-300 rounded-xl p-3 text-center text-base font-black shadow-md">▶</button>
+        </div>
+    </footer>
+
+    <!-- 모달: 동사 법률 도감 -->
+    <div id="modal-codex" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border-2 border-cyan-400 rounded-2xl max-w-lg w-full max-h-[80vh] flex flex-col overflow-hidden shadow-2xl">
+            <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950">
+                <h3 class="font-bold text-cyan-300 text-sm flex items-center gap-2">📜 동사 왕국 입국 법률 도감</h3>
+                <button onclick="toggleCodex()" class="text-slate-400 hover:text-white font-bold">✕</button>
+            </div>
+            <div class="p-4 overflow-y-auto space-y-3 text-xs text-slate-200 custom-scrollbar leading-relaxed">
+                <div class="bg-slate-950 p-3.5 rounded-xl border border-amber-500/50">
+                    <h4 class="font-bold text-amber-300 mb-1 text-sm">👑 3류 동사 왕국</h4>
+                    <p>· 입국 기사: 오직 <b>する (하다)</b>, <b>くる (오다)</b> 둘뿐!</p>
+                    <p>· ~ます 변신: する → <b>します</b> / くる → <b>きます</b></p>
+                </div>
+                <div class="bg-slate-950 p-3.5 rounded-xl border border-sky-500/50">
+                    <h4 class="font-bold text-sky-300 mb-1 text-sm">🏰 2류 동사 왕국</h4>
+                    <p>· 입국 조건: 이름 끝이 <b>る</b>로 끝나고 바로 앞 글자가 <b>い단</b> 또는 <b>え단</b>!</p>
+                    <p>· 예시: きる(입다), たべる(먹다), みる(보다)</p>
+                    <p>· ~ます 변신: 어미 <b>る</b>를 떼고 <b>ます</b> 착용!</p>
+                </div>
+                <div class="bg-slate-950 p-3.5 rounded-xl border border-emerald-500/50">
+                    <h4 class="font-bold text-emerald-300 mb-1 text-sm">⚔️ 1류 동사 왕국</h4>
+                    <p>· 입국 조건: 3류도 아니고 2류 조건도 아닌 나머지 모든 동사 기사!</p>
+                    <p>· 예시: あう(만나다), いく(가다), はなす(이야기하다), よむ(읽다), うたう(노래하다)</p>
+                    <p>· ~ます 변신: 마지막 글자를 <b>い단</b>으로 바꾸고 <b>ます</b> 착용!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // 동사 기사단 데이터 (단어 + 뜻 명시)
+    const knights = [
+        { verb: "あう", meaning: "만나다", type: 1, typeName: "1류", icon: "🤝", choices: ["あうます", "あいます", "あえます"], answer: 1, dressed: "あいます (아이마스)" },
+        { verb: "いく", meaning: "가다", type: 1, typeName: "1류", icon: "🏃", choices: ["いきます", "いくます", "いけます"], answer: 0, dressed: "いきます (이키마스)" },
+        { verb: "はなす", meaning: "이야기하다", type: 1, typeName: "1류", icon: "🗣️", choices: ["はなすます", "はなします", "はなせます"], answer: 1, dressed: "はなします (하나시마스)" },
+        { verb: "よむ", meaning: "읽다", type: 1, typeName: "1류", icon: "📖", choices: ["よみます", "よむます", "よめます"], answer: 0, dressed: "よみます (요미마스)" },
+        { verb: "うたう", meaning: "노래하다", type: 1, typeName: "1류", icon: "🎤", choices: ["うたうます", "うたいます", "うたえます"], answer: 1, dressed: "うたいます (우타이마스)" },
+        { verb: "きる", meaning: "입다", type: 2, typeName: "2류", icon: "👔", choices: ["きります", "きます", "きれます"], answer: 1, dressed: "きます (키마스)" },
+        { verb: "たべる", meaning: "먹다", type: 2, typeName: "2류", icon: "🍱", choices: ["たべます", "たべります", "たべす"], answer: 0, dressed: "たべます (타베마스)" },
+        { verb: "みる", meaning: "보다", type: 2, typeName: "2류", icon: "👁️", choices: ["みります", "みます", "みれます"], answer: 1, dressed: "みます (미마스)" },
+        { verb: "くる", meaning: "오다", type: 3, typeName: "3류", icon: "🚀", choices: ["くります", "くます", "きます"], answer: 2, dressed: "きます (키마스)" },
+        { verb: "する", meaning: "하다", type: 3, typeName: "3류", icon: "👑", choices: ["すります", "すます", "します"], answer: 2, dressed: "します (시마스)" }
+    ];
+
+    let kIndex = 0;
+    let hp = 3;
+    let score = 0;
+    let posX = 270;
+    let posY = 280;
+    let isTalking = false;
+
+    const playerElem = document.getElementById('player-avatar');
+    const dialogueBox = document.getElementById('dialogue-box');
+
+    function updatePlayerInfo() {
+        const k = knights[kIndex];
+        document.getElementById('player-icon').innerText = k.icon;
+        document.getElementById('player-label').innerText = `${k.verb} (${k.meaning})`;
+        playerElem.style.left = posX + 'px';
+        playerElem.style.top = posY + 'px';
+    }
+
+    function movePlayer(dx, dy) {
+        if (isTalking) return;
+        posX = Math.max(20, Math.min(550, posX + dx));
+        posY = Math.max(70, Math.min(300, posY + dy));
+        playerElem.style.left = posX + 'px';
+        playerElem.style.top = posY + 'px';
+
+        checkGateCollision();
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowUp') movePlayer(0, -25);
+        if (e.key === 'ArrowDown') movePlayer(0, 25);
+        if (e.key === 'ArrowLeft') movePlayer(-25, 0);
+        if (e.key === 'ArrowRight') movePlayer(25, 0);
+    });
+
+    function checkGateCollision() {
+        if (posY <= 90) {
+            if (posX >= 20 && posX <= 180) triggerGate(1);
+            else if (posX >= 200 && posX <= 360) triggerGate(2);
+            else if (posX >= 390 && posX <= 550) triggerGate(3);
+        }
+    }
+
+    function triggerGate(gateNum) {
+        isTalking = true;
+        dialogueBox.classList.remove('hidden');
+        dialogueBox.classList.add('flex');
+
+        const k = knights[kIndex];
+        document.getElementById('dialogue-speaker').innerText = `${gateNum}류 왕국 문지기`;
+        document.getElementById('dialogue-knight-info').innerText = `신청 기사: ${k.verb} (${k.meaning})`;
+
+        const dialogueText = document.getElementById('dialogue-text');
+        const choicesContainer = document.getElementById('dialogue-choices');
+
+        if (gateNum === k.type) {
+            dialogueText.innerText = `⭕ "환영하오! [${k.verb} (${k.meaning})] 기사여! 그대는 올바른 ${k.typeName} 동사 왕국 기사요. 탈의실로 이동하여 ~ます 예복을 입으시오!"`;
+            choicesContainer.innerHTML = `<button onclick="startDressUp()" class="w-full p-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs shadow-md">👔 ~ます 예복 갈아입으러 가기</button>`;
+        } else {
+            hp--;
+            document.getElementById('hp-display').innerText = hp;
+
+            let reason = "";
+            if (gateNum === 1) reason = `1류 왕국은 3류나 2류 조건에 맞지 않는 기사의 왕국이오!`;
+            else if (gateNum === 2) reason = `2류 왕국은 반드시 이름 끝이 'る'로 끝나고 앞 글자가 'い단/え단'이어야 통과하오!`;
+            else if (gateNum === 3) reason = `3류 왕국은 오직 'する(하다)'와 'くる(오다)' 두 기사만 입국 가능하오!`;
+
+            dialogueText.innerText = `❌ "입국 거절! [${k.verb}] 기사는 우리 ${gateNum}류 왕국에 들어올 수 없소! ${reason}"`;
+            choicesContainer.innerHTML = `<button onclick="closeDialogue()" class="w-full p-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs">돌아가기 (HP -1)</button>`;
+
+            if (hp <= 0) {
+                setTimeout(() => { 
+                    alert("HP가 다 소진되었습니다! 처음부터 다시 도전해보세요."); 
+                    resetGame(); 
+                }, 400);
+            }
+        }
+    }
+
+    function startDressUp() {
+        const k = knights[kIndex];
+        document.getElementById('dialogue-speaker').innerText = `왕실 탈의실 마법사`;
+        document.getElementById('dialogue-text').innerText = `"[${k.verb} (${k.meaning})] 기사를 위해 올바른 ~ます 예복으로 변신시켜 주세요!"`;
+
+        const choicesContainer = document.getElementById('dialogue-choices');
+        choicesContainer.innerHTML = '';
+
+        k.choices.forEach((choiceStr, idx) => {
+            const btn = document.createElement('button');
+            btn.className = "w-full p-3 bg-cyan-950 hover:bg-cyan-900 border-2 border-cyan-400/80 rounded-xl font-bold text-xs text-left text-cyan-200 transition";
+            btn.innerHTML = `예복 보기 ${idx + 1}. <b>${choiceStr}</b>`;
+            btn.onclick = () => completeDress(idx);
+            choicesContainer.appendChild(btn);
+        });
+    }
+
+    function completeDress(selectedIdx) {
+        const k = knights[kIndex];
+        if (selectedIdx === k.answer) {
+            score++;
+            document.getElementById('score-display').innerText = score;
+
+            document.getElementById('player-icon').innerText = "✨👘";
+            document.getElementById('player-label').innerText = `${k.dressed}`;
+            document.getElementById('dialogue-text').innerText = `🎉 변신 성공! [${k.verb}] 기사가 [${k.dressed}] 예복으로 갈아입고 국왕 알현에 성공했습니다!`;
+
+            const choicesContainer = document.getElementById('dialogue-choices');
+            choicesContainer.innerHTML = `<button onclick="nextKnight()" class="w-full p-3 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black rounded-xl text-xs shadow-md">다음 기사 입국 심사하기 ▶</button>`;
+        } else {
+            alert(`틀린 예복입니다! [${k.verb}] 기사의 올바른 예복을 골라주세요.`);
+        }
+    }
+
+    function nextKnight() {
+        kIndex++;
+        if (kIndex >= knights.length) {
+            alert(`🎉 축하합니다! 모든 10명의 동사 기사를 무사히 입국시켰습니다! (최종 승인: ${score}/10)`);
+            resetGame();
+            return;
+        }
+        closeDialogue();
+    }
+
+    function closeDialogue() {
+        dialogueBox.classList.add('hidden');
+        dialogueBox.classList.remove('flex');
+        posY = 280;
+        posX = 270;
+        isTalking = false;
+        updatePlayerInfo();
+    }
+
+    // 처음으로 돌아가기 기능
+    function resetGame() {
+        kIndex = 0;
+        hp = 3;
+        score = 0;
+        document.getElementById('hp-display').innerText = hp;
+        document.getElementById('score-display').innerText = score;
+        closeDialogue();
+    }
+
+    function toggleCodex() {
+        document.getElementById('modal-codex').classList.toggle('hidden');
+    }
+
+    updatePlayerInfo();
+</script>
+</body>
+</html>
