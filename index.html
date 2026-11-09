@@ -35,7 +35,7 @@
     <!-- 2D 맵 게임 필드 -->
     <div id="game-field" class="w-full max-w-3xl h-[420px] bg-slate-900 border-x-2 border-slate-700 relative overflow-hidden flex flex-col justify-between p-4 shadow-2xl">
         
-        <!-- 3개 왕국 성문 (밝은 하이라이트 칼라 적용) -->
+        <!-- 3개 왕국 성문 -->
         <div class="grid grid-cols-3 gap-3 w-full z-10">
             <div id="gate-1" class="bg-emerald-950/70 border-2 border-emerald-400 rounded-xl p-3 text-center transition-all shadow-lg shadow-emerald-500/10">
                 <div class="text-xs font-black text-emerald-300">⚔️ 1류 동사 왕국</div>
@@ -51,7 +51,7 @@
             </div>
         </div>
 
-        <!-- 플레이어 기사 아바타 (밝은 시안 배지) -->
+        <!-- 플레이어 기사 아바타 -->
         <div id="player-avatar" class="absolute w-32 h-20 bg-slate-800/95 border-2 border-cyan-400 rounded-xl flex flex-col items-center justify-center transition-all duration-75 shadow-xl shadow-cyan-400/20 z-20" style="left: 270px; top: 280px;">
             <span id="player-icon" class="text-2xl">🤝</span>
             <span id="player-label" class="text-[11px] font-black text-cyan-300 mt-0.5">あう (만나다)</span>
@@ -73,7 +73,7 @@
         </div>
     </div>
 
-    <!-- 모바일 / 터치 패드 조작부 (밝은 버튼 색상) -->
+    <!-- 모바일 / 터치 패드 조작부 -->
     <footer class="w-full max-w-3xl bg-slate-900 border-2 border-slate-700 rounded-b-2xl p-4 flex flex-col items-center gap-3">
         <div class="grid grid-cols-3 gap-2 w-48">
             <div></div>
@@ -115,8 +115,8 @@
     </div>
 
 <script>
-    // 동사 기사단 데이터 (단어 + 뜻 명시)
-    const knights = [
+    // 동사 기사 원본 데이터
+    const defaultKnights = [
         { verb: "あう", meaning: "만나다", type: 1, typeName: "1류", icon: "🤝", choices: ["あうます", "あいます", "あえます"], answer: 1, dressed: "あいます (아이마스)" },
         { verb: "いく", meaning: "가다", type: 1, typeName: "1류", icon: "🏃", choices: ["いきます", "いくます", "いけます"], answer: 0, dressed: "いきます (이키마스)" },
         { verb: "はなす", meaning: "이야기하다", type: 1, typeName: "1류", icon: "🗣️", choices: ["はなすます", "はなします", "はなせます"], answer: 1, dressed: "はなします (하나시마스)" },
@@ -129,6 +129,7 @@
         { verb: "する", meaning: "하다", type: 3, typeName: "3류", icon: "👑", choices: ["すります", "すます", "します"], answer: 2, dressed: "します (시마스)" }
     ];
 
+    let knights = [];
     let kIndex = 0;
     let hp = 3;
     let score = 0;
@@ -138,6 +139,15 @@
 
     const playerElem = document.getElementById('player-avatar');
     const dialogueBox = document.getElementById('dialogue-box');
+
+    // 기사단 목록 셔플 (무작위 섞기)
+    function shuffleKnights() {
+        knights = [...defaultKnights];
+        for (let i = knights.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [knights[i], knights[j]] = [knights[j], knights[i]];
+        }
+    }
 
     function updatePlayerInfo() {
         const k = knights[kIndex];
@@ -261,11 +271,11 @@
         updatePlayerInfo();
     }
 
-    // 처음으로 돌아가기 기능
     function resetGame() {
         kIndex = 0;
         hp = 3;
         score = 0;
+        shuffleKnights(); // 단어 목록 무작위 셔플
         document.getElementById('hp-display').innerText = hp;
         document.getElementById('score-display').innerText = score;
         closeDialogue();
@@ -275,7 +285,8 @@
         document.getElementById('modal-codex').classList.toggle('hidden');
     }
 
-    updatePlayerInfo();
+    // 게임 처음 시작 시 셔플 실행
+    resetGame();
 </script>
 </body>
 </html>
