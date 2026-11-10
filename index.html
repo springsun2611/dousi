@@ -117,16 +117,16 @@
 <script>
     // 동사 기사 원본 데이터
     const defaultKnights = [
-        { verb: "あう", meaning: "만나다", type: 1, typeName: "1류", icon: "🤝", choices: ["あうます", "あいます", "あえます"], answer: 1, dressed: "あいます (아이마스)" },
-        { verb: "いく", meaning: "가다", type: 1, typeName: "1류", icon: "🏃", choices: ["いきます", "いくます", "いけます"], answer: 0, dressed: "いきます (이키마스)" },
-        { verb: "はなす", meaning: "이야기하다", type: 1, typeName: "1류", icon: "🗣️", choices: ["はなすます", "はなします", "はなせます"], answer: 1, dressed: "はなします (하나시마스)" },
-        { verb: "よむ", meaning: "읽다", type: 1, typeName: "1류", icon: "📖", choices: ["よみます", "よむます", "よめます"], answer: 0, dressed: "よみます (요미마스)" },
-        { verb: "うたう", meaning: "노래하다", type: 1, typeName: "1류", icon: "🎤", choices: ["うたうます", "うたいます", "うたえます"], answer: 1, dressed: "うたいます (우타이마스)" },
-        { verb: "きる", meaning: "입다", type: 2, typeName: "2류", icon: "👔", choices: ["きります", "きます", "きれます"], answer: 1, dressed: "きます (키마스)" },
-        { verb: "たべる", meaning: "먹다", type: 2, typeName: "2류", icon: "🍱", choices: ["たべます", "たべります", "たべす"], answer: 0, dressed: "たべます (타베마스)" },
-        { verb: "みる", meaning: "보다", type: 2, typeName: "2류", icon: "👁️", choices: ["みります", "みます", "みれます"], answer: 1, dressed: "みます (미마스)" },
-        { verb: "くる", meaning: "오다", type: 3, typeName: "3류", icon: "🚀", choices: ["くります", "くます", "きます"], answer: 2, dressed: "きます (키마스)" },
-        { verb: "する", meaning: "하다", type: 3, typeName: "3류", icon: "👑", choices: ["すります", "すます", "します"], answer: 2, dressed: "します (시마스)" }
+        { verb: "あう(아우)", meaning: "만나다", type: 1, typeName: "1류", icon: "🤝", choices: ["あうます", "あいます", "あえます"], answer: 1, dressed: "あいます (아이마스)" },
+        { verb: "いく(이쿠)", meaning: "가다", type: 1, typeName: "1류", icon: "🏃", choices: ["いきます", "いくます", "いけます"], answer: 0, dressed: "いきます (이키마스)" },
+        { verb: "はなす(하나수)", meaning: "이야기하다", type: 1, typeName: "1류", icon: "🗣️", choices: ["はなすます", "はなします", "はなせます"], answer: 1, dressed: "はなします (하나시마스)" },
+        { verb: "よむ(요무)", meaning: "읽다", type: 1, typeName: "1류", icon: "📖", choices: ["よみます", "よむます", "よめます"], answer: 0, dressed: "よみます (요미마스)" },
+        { verb: "うたう(우타우)", meaning: "노래하다", type: 1, typeName: "1류", icon: "🎤", choices: ["うたうます", "うたいます", "うたえます"], answer: 1, dressed: "うたいます (우타이마스)" },
+        { verb: "きる(키루)", meaning: "입다", type: 2, typeName: "2류", icon: "👔", choices: ["きります", "きます", "きれます"], answer: 1, dressed: "きます (키마스)" },
+        { verb: "たべる(타베루)", meaning: "먹다", type: 2, typeName: "2류", icon: "🍱", choices: ["たべます", "たべります", "たべす"], answer: 0, dressed: "たべます (타베마스)" },
+        { verb: "みる(미루)", meaning: "보다", type: 2, typeName: "2류", icon: "👁️", choices: ["みります", "みます", "みれます"], answer: 1, dressed: "みます (미마스)" },
+        { verb: "くる(쿠루)", meaning: "오다", type: 3, typeName: "3류", icon: "🚶‍♀️‍➡️", choices: ["くります", "くます", "きます"], answer: 2, dressed: "きます (키마스)" },
+        { verb: "する(스루)", meaning: "하다", type: 3, typeName: "3류", icon: "👑", choices: ["すります", "すます", "します"], answer: 2, dressed: "します (시마스)" }
     ];
 
     let knights = [];
@@ -241,9 +241,9 @@
             score++;
             document.getElementById('score-display').innerText = score;
 
-            document.getElementById('player-icon').innerText = "✨👘";
+            document.getElementById('player-icon').innerText = "✨🏇⚜️";
             document.getElementById('player-label').innerText = `${k.dressed}`;
-            document.getElementById('dialogue-text').innerText = `🎉 변신 성공! [${k.verb}] 기사가 [${k.dressed}] 예복으로 갈아입고 국왕 알현에 성공했습니다!`;
+            document.getElementById('dialogue-text').innerText = `🎉 변신 성공! [${k.verb}] 기사가 [${k.dressed}] 예복으로 갈아입고 국왕🫅 알현에 성공했습니다!`;
 
             const choicesContainer = document.getElementById('dialogue-choices');
             choicesContainer.innerHTML = `<button onclick="nextKnight()" class="w-full p-3 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black rounded-xl text-xs shadow-md">다음 기사 입국 심사하기 ▶</button>`;
